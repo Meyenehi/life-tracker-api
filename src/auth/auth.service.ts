@@ -1,8 +1,8 @@
 import { Model } from 'mongoose';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
-import { User } from '../users/interfaces/user.interface';
+import { User } from '../users/interfaces/users.interface';
 import { sha512 } from '../shared/utils';
 
 @Injectable()
@@ -14,9 +14,9 @@ export class AuthService {
 
   async validateUser(email: string, password: string): Promise<any> {
     const user: Model<User> = await this.usersService.findOneByEmail(email);
-    if (!user) throw new UnauthorizedException();
+    if (!user) return null;
     const hash = sha512(password, user.salt);
-    if (user.hash === hash) return user.sanitize();
+    if (user.hash === hash) return user;
     return null;
   }
 

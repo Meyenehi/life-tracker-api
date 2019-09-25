@@ -10,11 +10,12 @@ import {
   UseGuards,
   ConflictException,
 } from '@nestjs/common';
+import { Model } from 'mongoose';
 import { AuthGuard } from '@nestjs/passport';
-import { User, UserSanitized } from './interfaces/user.interface';
+import { User, UserSanitized } from './interfaces/users.interface';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto';
-import { createUserSchema } from './validation';
+import { CreateUserDto } from './dtos/users.dto';
+import { createUserValidator } from './dtos/users.validation';
 import { JoiValidationPipe } from '../shared/joi.pipe';
 import { UserByIdPipe } from './users.pipe';
 
@@ -23,27 +24,30 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  @UsePipes(new JoiValidationPipe(createUserSchema))
-  async create(@Body() createUserDto: CreateUserDto) {
+  async create(
+    @Body(new JoiValidationPipe(createUserValidator))
+    createUserDto: CreateUserDto,
+  ) {
     return await this.usersService.create(createUserDto);
   }
 
   @Get()
   @UseGuards(AuthGuard('jwt'))
   async findAll(): Promise<UserSanitized[]> {
-    return await this.usersService.findAll(true);
+    const users = await this.usersService.findAll();
+    return users.map(user => user.sanitize());
   }
 
   @Get('me')
   @UseGuards(AuthGuard('jwt'))
   getProfile(@Request() req) {
-    return req.user;
+    return req.user.sanitize();
   }
 
   @Get(':id')
   @UseGuards(AuthGuard('jwt'))
   @UsePipes(UserByIdPipe)
-  async findOne(@Param('id') user: UserSanitized): Promise<UserSanitized> {
-    return user;
+  async findOne(@Param('id') user: Model<User>): Promise<UserSanitized> {
+    return user.sanitize();
   }
 }

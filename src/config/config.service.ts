@@ -3,7 +3,7 @@ import * as dotenv from 'dotenv-extended';
 
 @Injectable()
 export class ConfigService {
-  private readonly envConfig: { [prop: string]: string };
+  private readonly envConfig: { [key: string]: string };
 
   constructor(path?: string) {
     this.envConfig = dotenv.load({

@@ -1,11 +1,6 @@
-import { Connection } from 'mongoose';
-import { UserSchema } from './schemas/user.schema';
+import { UserSchema } from './schemas/users.schema';
+import { MongooseModule } from '@nestjs/mongoose';
 
 export const usersProviders = [
-  {
-    provide: 'User',
-    useFactory: (connection: Connection) =>
-      connection.model('User', UserSchema),
-    inject: ['DATABASE_CONNECTION'],
-  },
+  MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
 ];

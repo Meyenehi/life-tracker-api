@@ -3,11 +3,11 @@ import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { ConfigService } from '../config/config.service';
-import { NEST_CONFIG_PROVIDER } from '../config/constants';
 import { UsersModule } from '../users/users.module';
 import { PassportModule } from '@nestjs/passport';
 import { LocalStrategy } from './local.strategy';
 import { JwtStrategy } from './jwt.strategy';
+import { JwtService } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -18,7 +18,7 @@ import { JwtStrategy } from './jwt.strategy';
         secret: configService.get('JWT_SECRET'),
         signOptions: { expiresIn: '60m' },
       }),
-      inject: [NEST_CONFIG_PROVIDER],
+      inject: [ConfigService],
     }),
   ],
   providers: [AuthService, LocalStrategy, JwtStrategy],

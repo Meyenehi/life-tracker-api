@@ -1,24 +1,20 @@
 import { Model } from 'mongoose';
-import {
-  Injectable,
-  Inject,
-  ConflictException,
-  NotFoundException,
-} from '@nestjs/common';
-import { User, UserSanitized } from './interfaces/user.interface';
-import { LoginDto, CreateUserDto } from './dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { Injectable, ConflictException } from '@nestjs/common';
+import { User, UserCreate } from './interfaces/users.interface';
+import { CreateUserDto } from './dtos/users.dto';
 import { generateSalt, sha512 } from '../shared/utils';
 
 @Injectable()
 export class UsersService {
-  constructor(@Inject('User') private readonly userModel: Model<User>) {}
+  constructor(@InjectModel('User') private readonly userModel: Model<User>) {}
 
   async create(createUserDto: CreateUserDto) {
     try {
       const { firstName, lastName, email, password } = createUserDto;
       const salt: string = generateSalt(16);
       const hash: string = sha512(password, salt);
-      const userData: User = {
+      const userData: UserCreate = {
         firstName,
         lastName,
         email,
@@ -34,34 +30,20 @@ export class UsersService {
     }
   }
 
-  async findAll(sanitized: boolean = false): Promise<User[] | UserSanitized[]> {
+  async findAll(): Promise<Model<User>[]> {
     const users: Model<User>[] = await this.userModel.find();
-    if (!sanitized) return users;
-
-    return users.map((user: Model<User>) => {
-      return user.sanitize();
-    });
+    return users;
   }
 
-  async findOne(
-    id: string,
-    sanitized: boolean = false,
-  ): Promise<User | UserSanitized | undefined> {
+  async findOne(id: string): Promise<Model<User> | undefined> {
     const user: Model<User> = await this.userModel.findOne({ _id: id });
-    if (!user) throw new NotFoundException();
-    if (!sanitized) return user;
-
-    return user.sanitize();
+    if (!user) return undefined;
+    return user;
   }
 
-  async findOneByEmail(
-    email: string,
-    sanitized: boolean = false,
-  ): Promise<User | UserSanitized | undefined> {
+  async findOneByEmail(email: string): Promise<Model<User> | undefined> {
     const user: Model<User> = await this.userModel.findOne({ email });
-    if (!user) throw new NotFoundException();
-    if (!sanitized) return user;
-
-    return user.sanitize();
+    if (!user) return undefined;
+    return user;
   }
 }
